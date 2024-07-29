@@ -1,0 +1,22 @@
+Kap,Desc,Range,Range_Min,Range_Max
+Kap. I,Visse infektiøse og parasitære sygdomme ,A00-DB99,A00,DB99
+Kap. II,Neoplasmer ,C00-DD48,C00,DD48
+Kap. III,"Sygdomme i blod og bloddannende organer og visse sygdomme, som inddrager immunsystemet ",D50-DD89,D50,DD89
+Kap. IV,"Endokrine, ernæringsbetingede og metaboliske sygdomme ",E00-DE90,E00,DE90
+Kap. V,Psykiske lidelser og adfærdsmæssige forstyrrelser ,F00-DF99,F00,DF99
+Kap. VI,Sygdomme i nervesystemet ,G00-DG99,G00,DG99
+Kap. VII,Sygdomme i øje og øjenomgivelser ,H00-DH59,H00,DH59
+Kap. VIII,Sygdomme i øre og processus mastoideus ,H60-DH95,H60,DH95
+Kap. IX,Sygdomme i kredsløbsorganer ,I00-DI99,I00,DI99
+Kap. X,Sygdomme i åndedrætsorganer ,J00-DJ99,J00,DJ99
+Kap. XI,Sygdomme i fordøjelsesorganer ,K00-DK93,K00,DK93
+Kap. XII,Sygdomme i hud og underhud ,L00-DL99,L00,DL99
+Kap. XIII,"Sygdomme i knogler, muskler og bindevæv ",M00-DM99,M00,DM99
+Kap. XIV,Sygdomme i urin- og kønsorganer ,N00-DN99,N00,DN99
+Kap. XV,"Graviditet, fødsel og barselsperiode ",O00-DO99,O00,DO99
+Kap. XVI,"Visse sygdomme, der opstår i perinatalperiode ",P00-DP96,P00,DP96
+Kap. XVII,Medfødte misdannelser og kromosomanomalier ,Q00-DQ99,Q00,DQ99
+Kap. XVIII,Symptomer og abnorme fund IKA ,R00-DR99,R00,DR99
+Kap. XIX,"Læsioner, forgiftninger og visse andre følger af ydre påvirkninger ",S00-DT98,S00,DT98
+Kap. XX,Ydre årsager til skade ,X60-DY09,X60,DY09
+Kap. XXI,Faktorer af betydning for sundhedstilstand og kontakter med sundhedsvæsen ,Z00-DZ99,Z00,DZ99
