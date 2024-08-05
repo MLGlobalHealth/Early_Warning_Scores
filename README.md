@@ -1,4 +1,4 @@
-# Development and validation of EWS hospital systems 🚑
+# Development and validation of EWS systems 🚑
 
 ## Contents
 
