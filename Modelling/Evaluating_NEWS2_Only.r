@@ -410,6 +410,21 @@ cal_current_department <- current_fit |>
 cal_current_department
 
 
+# Get the calibration curves for the different hospitals
+
+
+cal_current_hosp <- current_fit |> 
+  collect_predictions() |>
+  cal_plot_windowed(truth = Status30D,estimate = .pred_Deceased,include_rug = F,.by = Hospital) + 
+  theme_gray(base_size = 12) + 
+  facet_wrap(vars(Hospital),nrow = 5) + 
+  theme(legend.position = "topleft") +
+  labs(x = "Predictions from NEWS2 model")
+
+
+cal_current_hosp
+
+
 
 # Get the calibration curves for the different sks
 
