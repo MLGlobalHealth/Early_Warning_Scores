@@ -25,10 +25,14 @@
     -   `EWS_Blood_ITA_Procedures.R` contains R code on merging EWS + Blood Tests + Intensive Care with Procedures data
 
     -   `EWS_Final_Merging.py` contains python code on the final merging of the datasets (diagnoses included)
+ 
+-   **Modelling folder**
+  
+    -  `Evaluating_NEWS2_Only.R` contains R code for the validation of NEWS2 system in terms of predictive performance
 
 -   **To do list:**
 
-    -   Assessment of NEWS2 current system based on predictive performance metrics using data-splitting techniques 🚧.
+    -   Assessment of NEWS2 current system based on predictive performance metrics using data-splitting techniques ✅.
 
     -   Debiasing the dataset with IPW based on intervention scenarios 🚧
 
