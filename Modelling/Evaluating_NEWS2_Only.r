@@ -278,7 +278,7 @@ doParallel::registerDoParallel(cores = 6)
 
 set.seed(222)
 
-confidence_bands <- int_pctl(current_fit_ci,times = 500) 
+confidence_bands <- int_pctl(current_fit_ci,times = 1000) 
 
 
 # Calibration curves
