@@ -34,8 +34,8 @@
 
     -   Assessment of NEWS2 current system based on predictive performance metrics using data-splitting techniques ✅.
 
-    -   Debiasing the dataset with IPW based on intervention scenarios 🚧
+    -   Debiasing the dataset with IPW based on intervention scenarios ✅
 
-    -   Development of alternative early warning score systems and model comparison 🚧
+    -   Development of alternative early warning score systems and model comparison ✅
 
-    -   Assess performance on various strata of target population / Assess fairness 🚧
+    -   Assess performance on various strata of target population / Assess fairness 🔨
