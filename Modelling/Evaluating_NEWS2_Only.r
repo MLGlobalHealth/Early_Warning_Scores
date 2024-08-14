@@ -18,7 +18,7 @@ library(tidylog) # Observing pre-processing numbers
 library(Publish) # Table 1 creation
 library(writexl) # Excel conversion of data frames
 library(arrow) # Read parquet files
-
+library(riskRegression) # Risk modelling
 
 
 #######################################################
@@ -156,8 +156,8 @@ data <- data |>
 # What we should do now is create a model that gives the propensity of having received an intervention (thats for comparing afterwards with new models)
 
 model_weights = glm(Interventions ~ Age_Group + Sex + Hospital + 
-  Blood_Pressure.Sys + Temperature + Saturation + Pulse +
-  Oxygen_Supplement + Consciousness,data = data,family = "binomial")
+                      Blood_Pressure.Sys + Temperature + Saturation + Pulse +
+                      Oxygen_Supplement + Consciousness,data = data,family = "binomial")
 
 # Compute the probability of receiving intervention
 
@@ -236,7 +236,7 @@ current_wf <- workflow() |>
   add_formula(Status30D ~ Max_NEWS) |>
   add_model(model)
 
-  
+
 # Set up parallel processing
 doParallel::registerDoParallel(cores = 6)
 
@@ -246,18 +246,18 @@ cntrl <- control_resamples(save_pred = T)
 # Internal-External validation of the current EWS (checking demographic parity also)
 
 current_fit <- fit_resamples(current_wf,resamples = data_folds,
-                              metrics = metric_set(
-                              roc_auc,
-                              brier_class,
-                              demographic_parity(Age_Group),
-                              demographic_parity(Sex),
-                              demographic_parity(Department_Name_Fac),
-                              demographic_parity(Hospital),
-                              demographic_parity(Risk_Groups_EWS),
-                              demographic_parity(Previous_Hosp_Fac),
-                              demographic_parity(SKS_Category),
-                              demographic_parity(Interventions),
-                              demographic_parity(ITA_Indicator)), 
+                             metrics = metric_set(
+                               roc_auc,
+                               brier_class,
+                               demographic_parity(Age_Group),
+                               demographic_parity(Sex),
+                               demographic_parity(Department_Name_Fac),
+                               demographic_parity(Hospital),
+                               demographic_parity(Risk_Groups_EWS),
+                               demographic_parity(Previous_Hosp_Fac),
+                               demographic_parity(SKS_Category),
+                               demographic_parity(Interventions),
+                               demographic_parity(ITA_Indicator)), 
                              ,control = cntrl)
 
 
@@ -269,16 +269,18 @@ current_fit |> collect_metrics()
 # Compute confidence interval of performance metrics
 
 current_fit_ci <- fit_resamples(current_wf,resamples = data_folds,
-                              metrics = metric_set(
-                              roc_auc,
-                              brier_class), 
-                              control = cntrl)
+                                metrics = metric_set(
+                                  roc_auc,
+                                  brier_class), 
+                                control = cntrl)
 
 doParallel::registerDoParallel(cores = 6)
 
 set.seed(222)
 
 confidence_bands <- int_pctl(current_fit_ci,times = 1000) 
+
+confidence_bands
 
 
 # Calibration curves
@@ -425,7 +427,6 @@ cal_current_hosp <- current_fit |>
 cal_current_hosp
 
 
-
 # Get the calibration curves for the different sks
 
 cal_current_sks <- current_fit |> 
@@ -442,17 +443,36 @@ cal_current_sks <- current_fit |>
                              "Certain infectious and parasitic diseases")) |>
   cal_plot_windowed(truth = Status30D,estimate = .pred_Deceased,include_rug = F,.by = SKS_Category) + 
   theme_gray(base_size = 12) + 
-  facet_wrap(vars(SKS_Category)) + 
+  facet_wrap(vars(SKS_Category),labeller = label_wrap_gen(width = 20)) + 
   theme(legend.position = "topleft") +
   labs(x = "Predictions from NEWS2 model")
 
 
 cal_current_sks
 
+
 ################################################################################
 ########################## Decision curve analysis #############################
 ################################################################################
 
+# We need to somehow translate the predicted probabilities into clinical groups
+
+pred_df <- current_fit |>
+  collect_predictions() |>
+  arrange(.row) |>
+  mutate(mort30D = if_else(Status30D == "Deceased",1,0))
+
+
+# Now let's see how the predicted probabilities translate to the groups
+
+pred_df |>
+  group_by(Risk_Groups_EWS) |>
+  summarize(Mean_Probability = mean(.pred_Deceased), Q25 = quantile(.pred_Deceased,0.25)) |>
+  arrange(Mean_Probability)
+
+# Specify thresholds 
+
+dca_thresholds <- seq(0.01, 0.60, by = 0.01)
 
 # Grab predictions from current_fit 
 
@@ -479,10 +499,12 @@ dca_first <- dcurves::dca(
 
 dca_plot1 <- dca_first + 
   theme_grey(base_size = 12) + 
-  ggsci::scale_colour_lancet() +
   theme(legend.position = "top") +
+  geom_textvline(xintercept = 0.00626,label = "Low",linetype = 2) + 
+  geom_textvline(xintercept = 0.0214,label = "Low-Medium", linetype = 2) + 
+  geom_textvline(xintercept = 0.0487, label = "Medium", linetype = 2) + 
+  geom_textvline(xintercept = 0.110, label = "High", linetype = 2) + 
   labs(y = "Net Benefit\nper 1000 patients", x = NULL) +
-  scale_x_continuous(limits = c(0,0.5)) +
   scale_y_continuous(labels = scales::label_number(scale = 1000))
 
 
@@ -499,8 +521,11 @@ dca_youngest <- dcurves::dca(
 
 dca_plot2 <- dca_youngest + 
   theme_grey(base_size = 12) + 
-  ggsci::scale_colour_lancet() +
   theme(legend.position = "top") +
+  geom_textvline(xintercept = 0.00626,label = "Low",linetype = 2) + 
+  geom_textvline(xintercept = 0.0214,label = "Low-Medium", linetype = 2) + 
+  geom_textvline(xintercept = 0.0487, label = "Medium", linetype = 2) + 
+  geom_textvline(xintercept = 0.110, label = "High", linetype = 2) + 
   labs(y = "Net Benefit\nper 1000 patients", x = NULL) +
   scale_y_continuous(labels = scales::label_number(scale = 1000))
 
@@ -520,8 +545,11 @@ dca_middle <- dcurves::dca(
 
 dca_plot3 <- dca_middle + 
   theme_grey(base_size = 12) + 
-  ggsci::scale_colour_lancet() +
   theme(legend.position = "top") +
+  geom_textvline(xintercept = 0.00626,label = "Low",linetype = 2) + 
+  geom_textvline(xintercept = 0.0214,label = "Low-Medium", linetype = 2) + 
+  geom_textvline(xintercept = 0.0487, label = "Medium", linetype = 2) + 
+  geom_textvline(xintercept = 0.110, label = "High", linetype = 2) + 
   labs(y = NULL, x = NULL) +
   scale_y_continuous(labels = scales::label_number(scale = 1000))
 
@@ -539,8 +567,11 @@ dca_old <- dcurves::dca(
 
 dca_plot3 <- dca_old + 
   theme_grey(base_size = 12) + 
-  ggsci::scale_colour_lancet() +
   theme(legend.position = "top") +
+  geom_textvline(xintercept = 0.00626,label = "Low",linetype = 2) + 
+  geom_textvline(xintercept = 0.0214,label = "Low-Medium", linetype = 2) + 
+  geom_textvline(xintercept = 0.0487, label = "Medium", linetype = 2) + 
+  geom_textvline(xintercept = 0.110, label = "High", linetype = 2) + 
   labs(y = NULL, x = NULL) +
   scale_y_continuous(labels = scales::label_number(scale = 1000))
 
@@ -559,7 +590,6 @@ dca_ita <- dcurves::dca(
 
 dca_plot4 <- dca_ita + 
   theme_grey(base_size = 12) + 
-  ggsci::scale_colour_lancet() +
   theme(legend.position = "top") +
   labs(y = "Net Benefit\nper 1000 patients", x = NULL) +
   scale_y_continuous(labels = scales::label_number(scale = 1000))
@@ -577,8 +607,11 @@ dca_ita2 <- dcurves::dca(
 
 dca_plot5 <- dca_ita2 + 
   theme_grey(base_size = 12) + 
-  ggsci::scale_colour_lancet() +
   theme(legend.position = "top") +
+  geom_textvline(xintercept = 0.00626,label = "Low",linetype = 2) + 
+  geom_textvline(xintercept = 0.0214,label = "Low-Medium", linetype = 2) + 
+  geom_textvline(xintercept = 0.0487, label = "Medium", linetype = 2) + 
+  geom_textvline(xintercept = 0.110, label = "High", linetype = 2) + 
   labs(y = "Net Benefit\nper 1000 patients", x = NULL) +
   scale_y_continuous(labels = scales::label_number(scale = 1000))
 
@@ -596,8 +629,11 @@ dca_no_int <- dcurves::dca(
 
 dca_plot6 <- dca_no_int + 
   theme_grey(base_size = 12) + 
-  ggsci::scale_colour_lancet() +
   theme(legend.position = "top") +
+  geom_textvline(xintercept = 0.00626,label = "Low",linetype = 2) + 
+  geom_textvline(xintercept = 0.0214,label = "Low-Medium", linetype = 2) + 
+  geom_textvline(xintercept = 0.0487, label = "Medium", linetype = 2) + 
+  geom_textvline(xintercept = 0.110, label = "High", linetype = 2) + 
   labs(y = "Net Benefit\nper 1000 patients", x = NULL) +
   scale_y_continuous(labels = scales::label_number(scale = 1000))
 
@@ -614,16 +650,20 @@ dca_int <- dcurves::dca(
 
 dca_plot7 <- dca_int + 
   theme_grey(base_size = 12) + 
-  ggsci::scale_colour_lancet() +
   theme(legend.position = "top") +
   labs(y = "Net Benefit\nper 1000 patients", x = NULL) +
+  geom_textvline(xintercept = 0.00626,label = "Low",linetype = 2) + 
+  geom_textvline(xintercept = 0.0214,label = "Low-Medium", linetype = 2) + 
+  geom_textvline(xintercept = 0.0487, label = "Medium", linetype = 2) + 
+  geom_textvline(xintercept = 0.110, label = "High", linetype = 2) + 
   scale_y_continuous(labels = scales::label_number(scale = 1000))
 
+# End of decision curve analysis
 
 # Evaluate mortality proportions per Max EWS (for demonstration purposes)
 
 data |>
-    group_by(Max_NEWS) |>
-    summarise(Mortality = mean(mort30D == 1)) |>
-    ggplot(aes(x = Max_NEWS, y = Mortality)) + 
-    geom_smooth()
+  group_by(Max_NEWS) |>
+  summarise(Mortality = mean(mort30D == 1)) |>
+  ggplot(aes(x = Max_NEWS, y = Mortality)) + 
+  geom_smooth()
