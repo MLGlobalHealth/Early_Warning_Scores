@@ -2,11 +2,14 @@
 name = "ews2024"
 dynamic = ["version"]
 dependencies = [
+  "catboost",
   "fastparquet",
   "numpy<2.0",
   "pandas",
   "polars",
   "seaborn",
+  "torch",
+  "torchvision",
   "xgboost",
 ]
 requires-python = ">=3.10"
