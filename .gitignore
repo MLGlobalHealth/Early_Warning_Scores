@@ -400,3 +400,6 @@ private_data/
 
 # Private results
 private_results/
+
+# All notebooks
+*.ipynb
