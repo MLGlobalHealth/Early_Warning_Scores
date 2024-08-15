@@ -34,7 +34,7 @@ data <- read_parquet("df_august.parquet")
 
 data |> janitor::tabyl(Interventions)
 
-data <- data |> filter(Interventions == 0)
+data <- data |> filter(Interventions == "No_Intervention")
 
 
 # We need to create all our models now
