@@ -1,0 +1,5 @@
+linters: linters_with_defaults(
+    indentation_linter(indent = 2L),
+    object_length_linter = object_length_linter(length = 40L),
+    line_length_linter = line_length_linter(length = 100L))
+encoding: "UTF-8"

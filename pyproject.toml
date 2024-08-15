@@ -1,3 +1,21 @@
+[project]
+name = "ews2024"
+dynamic = ["version"]
+dependencies = [
+  "fastparquet",
+  "numpy<2.0",
+  "pandas",
+  "polars",
+  "seaborn",
+  "xgboost",
+]
+requires-python = ">=3.10"
+readme = "README.md"
+
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
 [tool.black]
 line-length = 88
 target-version = ['py310']

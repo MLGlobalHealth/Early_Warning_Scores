@@ -394,3 +394,6 @@ Temporary Items
 # Neil's drafts
 drafts*.ipynb
 tmp*.ipynb
+
+# Private data
+private_data/
