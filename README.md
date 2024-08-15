@@ -40,7 +40,7 @@
             -   🔗 NEWS2-Light: NEWS2 - Blood Pressure - Temperature
             -   🔗 IEWS: NEWS2 + Age + Sex
             -   🔗 TREE-EWS: XGBoost with Age,Sex,Vital Signs, Previous Hospitalization & Blood Tests
-            -   🔗 Weighted performance metrics & calibration
+            -   🔗 Weighted performance metrics
 
 -   **To do list:**
 
@@ -49,6 +49,10 @@
     -   De-biasing the dataset with IPW based on intervention scenarios ✅
 
     -   Development of alternative early warning score systems and model comparison ✅
+ 
+    -   Add calibration plots for the newly developed models 🔨
+ 
+    -   Assess sustained recovery prediction of NEWS2  🔨
 
     -   Assess performance on various strata of target population / Assess fairness 🔨
 
