@@ -403,3 +403,6 @@ private_results/
 
 # All notebooks
 *.ipynb
+
+# catboost
+catboost_info/
