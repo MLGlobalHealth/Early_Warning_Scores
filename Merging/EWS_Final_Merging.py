@@ -29,9 +29,11 @@ ews_diagnoses = ews.join(diagnoses,how="left",on="CSN")
 
 # Now let's save as parquet two different files
 
+
 # First the EWS + Blood Tests + Procedures + ITA + Diagnoses (including CSNs with multiple diagnoses)
 
 ews_diagnoses.sink_parquet("EWS_Final_Mult.parquet")
+
 
 # Then the EWS + Blood Tests + Procedures + ITA + Diagnoses (keeping only one diagnosis per CSN)
 
