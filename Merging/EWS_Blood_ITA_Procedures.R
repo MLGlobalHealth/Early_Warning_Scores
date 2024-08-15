@@ -10,7 +10,7 @@ setwd("/Users/jkv465/Desktop/Work_EWS/New_Data")
 
 ews <- read_parquet("EWS_Blood_ITA.parquet")
 
-# Open procedures
+# Open procedures data
 
 procedures <- read_parquet("procedures_newest.parquet")
 
