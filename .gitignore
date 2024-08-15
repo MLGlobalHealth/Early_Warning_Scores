@@ -397,3 +397,6 @@ tmp*.ipynb
 
 # Private data
 private_data/
+
+# Private results
+private_results/
