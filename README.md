@@ -52,6 +52,6 @@
 
     -   Assess performance on various strata of target population / Assess fairness 🔨
 
-    -   Try a DL architecture as additional benchmark 🔨
+    -   Try a DL architecture as an additional benchmark 🔨
 
     -   Create a Table 1 🏷️
