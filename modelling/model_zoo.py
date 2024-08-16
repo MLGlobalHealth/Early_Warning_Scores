@@ -4,19 +4,22 @@ from lightgbm import LGBMClassifier
 from xgboost import XGBClassifier
 
 
-def load_model(name, random_state=42):
+def load_model(name, random_state=42, **kwargs):
     if name in ["xgboost", "XGBClassifier"]:
         model = XGBClassifier(
-            objective="binary:logistic",
-            random_state=random_state,
+            objective="binary:logistic", random_state=random_state, **kwargs
         )
     elif name in ["catboost", "CatBoostClassifier"]:
         task_type = "GPU" if get_gpu_device_count() > 0 else None
         model = CatBoostClassifier(
-            silent=True, task_type=task_type, devices="0", random_seed=random_state
+            silent=True,
+            task_type=task_type,
+            devices="0",
+            random_seed=random_state,
+            **kwargs,
         )
     elif name in ["lgbm", "LGBMClassifier"]:
-        model = LGBMClassifier(random_state=random_state)
+        model = LGBMClassifier(random_state=random_state, verbosity=0, **kwargs)
     else:
         raise ValueError(f"No model found for `{name}`.")
 
