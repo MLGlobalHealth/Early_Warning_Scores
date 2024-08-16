@@ -58,4 +58,4 @@
 
   - Try a DL architecture as an additional benchmark 🔨
 
-  - Create a Table 1 🏷️
+  - Create a Table 1 ✅
