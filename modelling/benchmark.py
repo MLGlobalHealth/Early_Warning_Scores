@@ -53,7 +53,7 @@ def prepare_data(input_file):
     print(f"Shape (raw data) : {df.shape}")
 
     # Prepare label
-    y = df.mort30D.values
+    y = df.mort30D
 
     print(f"Shape (y) : {y.shape}")
 
@@ -92,15 +92,13 @@ def prepare_data(input_file):
     sub_df["Consciousness"] = sub_df.loc[:, "Consciousness"].eq("A")
 
     # One-hot encoding
-    sub_df = pd.concat(
+    X = pd.concat(
         [
             sub_df,
             pd.get_dummies(sub_df["Previous_Hosp_Fac"], prefix="Previous_Hosp_Fac"),
         ],
         axis=1,
     ).drop("Previous_Hosp_Fac", axis=1)
-
-    X = sub_df.values
 
     print(f"Shape (X) : {X.shape}")
 
@@ -146,10 +144,12 @@ def main():
 
     logo = LeaveOneGroupOut()
 
-    model = load_model(args.model, d_num=X.shape[1])
+    model = load_model(args.model)
+
+    n_jobs = None if model.__class__.__name__ == "CatBoostClassifier" else args.jobs
 
     cv_results = cross_validate(
-        model, X, y, cv=logo, groups=groups, scoring="roc_auc", verbose=2, n_jobs=16
+        model, X, y, cv=logo, groups=groups, scoring="roc_auc", verbose=2, n_jobs=n_jobs
     )
 
     cv_results["leftout"] = sorted(groups.unique())
