@@ -50,7 +50,7 @@
 
   - Development of alternative early warning score systems and model comparison ✅
 
-  - Add calibration plots for the newly developed models 🔨
+  - Add calibration plots for the newly developed models ✅
 
   - Assess sustained recovery prediction of NEWS2  🔨
 
