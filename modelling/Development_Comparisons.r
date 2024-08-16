@@ -15,7 +15,6 @@ library(probably) # Calibration
 library(rms) # Classic statistical modelling
 library(doParallel) # Parallel processing
 library(tidylog) # Observing pre-processing numbers
-library(Publish) # Table 1 creation
 library(writexl) # Excel conversion of data frames
 library(arrow) # Read parquet files
 library(MetricsWeighted) # Weighted metrics
