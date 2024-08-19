@@ -52,10 +52,10 @@
 
   - Add calibration plots for the newly developed models ✅
 
-  - Assess sustained recovery prediction of NEWS2  🔨
+  - Assess sustained recovery prediction of NEWS2  ✅
 
   - Assess performance on various strata of target population / Assess fairness 🔨
 
-  - Try a DL architecture as an additional benchmark 🔨
+  - Try a DL architecture as an additional benchmark 🚩
 
   - Create a Table 1 ✅
