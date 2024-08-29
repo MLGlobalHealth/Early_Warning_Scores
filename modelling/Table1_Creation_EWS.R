@@ -198,15 +198,15 @@ table_df <- table_df |>
 
 # Create risk groups based on NEWS2 guidelines (at initial measurement)
 
-table_df <- table_df |> 
-  mutate(Risk_Groups_EWS = case_when(
-    EWS_score >= 7 ~ "High",
-    EWS_score >= 5 & EWS_score <= 6 ~ "Medium",
-    (Respiration_Rate <= 8 | Respiration_Rate >=25) | (Saturation <= 91) | 
-      (Pulse <= 40 | Pulse >= 131) | (Consciousness == "VPU") | (Temperature <= 35) | 
-      (Blood_Pressure.Sys <= 90 | Blood_Pressure.Sys >= 220) | (Temperature <= 35) ~ "Low-Medium",
-    EWS_score >= 0 & EWS_score <= 4 ~ "Low")) |> 
-  mutate(Risk_Groups_EWS = as.factor(Risk_Groups_EWS))
+#table_df <- table_df |> 
+  #mutate(Risk_Groups_EWS = case_when(
+    #EWS_score >= 7 ~ "High",
+    #EWS_score >= 5 & EWS_score <= 6 ~ "Medium",
+    #(Respiration_Rate <= 8 | Respiration_Rate >=25) | (Saturation <= 91) | 
+      #(Pulse <= 40 | Pulse >= 131) | (Consciousness == "VPU") | (Temperature <= 35) | 
+      #(Blood_Pressure.Sys <= 90 | Blood_Pressure.Sys >= 220) ~ "Low-Medium",
+    #EWS_score >= 0 & EWS_score <= 4 ~ "Low")) |> 
+  #mutate(Risk_Groups_EWS = as.factor(Risk_Groups_EWS))
 
 # We also need a variable that gives different IDs if the hospitalization number is different.
 
@@ -260,7 +260,7 @@ table1 <- summary(utable(Status30D ~  Age + Sex + Consciousness + Oxygen_Supplem
                                       Respiration_Rate + Pulse + Temperature + Saturation +
                                       Hemoglobin + Leukocytes + Trombocytes + Kreatinin + ALAT + LDH + Albumin + CRP + 
                                       Laktak_ab + Laktat_vb + ITA_Indicator + Interventions + SKS_Category + 
-                                      Blood_Pressure.Sys + Blood_Pressure.Dia + Risk_Groups_EWS, data = table_df))
+                                      Blood_Pressure.Sys + Blood_Pressure.Dia, data = table_df))
 
 
 # Print the table1
