@@ -208,6 +208,18 @@ data <- data |>
   mutate(SKS_Category = if_else(is.na(SKS_Category), "Unknown category",SKS_Category)) |> 
   mutate_at(vars(SKS_Category),as.factor)
 
+# Defining Risk Groups based on EWS
+
+data <- data |> 
+  mutate(Risk_Groups_EWS = case_when(
+    EWS_score >= 7 ~ "High",
+    EWS_score >= 5 & EWS_score <= 6 ~ "Medium",
+    (Respiration_Rate <= 8 | Respiration_Rate >=25) | (Saturation <= 91) | 
+      (Pulse <= 40 | Pulse >= 131) | (Consciousness == "VPU") | (Temperature <= 35) | 
+      (Blood_Pressure.Sys <= 90 | Blood_Pressure.Sys >= 220) ~ "Low-Medium",
+    EWS_score >= 0 & EWS_score <= 4 ~ "Low")) |> 
+  mutate(Risk_Groups_EWS = as.factor(Risk_Groups_EWS))
+
 # Save the dataset just in case we work in Python
 
 # write_parquet(data,"df_august.parquet")
