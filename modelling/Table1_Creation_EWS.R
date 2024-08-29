@@ -231,6 +231,10 @@ table_df <- table_df |>
 
 # Select the additional data
 
+setwd("/Users/jkv465/Desktop/Work_EWS/New_Data")
+
+data <- read_parquet("df_august.parquet")
+
 new_col_data <- data |> 
   select(Hemoglobin,Leukocytes,Trombocytes,Kreatinin,ALAT,LDH,Albumin,CRP,Laktak_ab,Laktat_vb,ITA_Start,ITA_Indicator,Interventions,SKS_Category,Department_Name_Fac,Previous_Hosp_Fac)
 
