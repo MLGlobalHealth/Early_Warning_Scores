@@ -28,7 +28,7 @@ data_cv <- read_parquet("df_august.parquet")
 
 # Specify formulas
 
-f1 <- mort30D ~ Max_NEWS
+f1 <- mort30D ~ Mean_NEWS
 
 # Evaluate AUC within an Internal External Cross-validation
 
