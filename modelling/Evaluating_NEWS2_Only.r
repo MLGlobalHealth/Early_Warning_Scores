@@ -19,7 +19,8 @@ library(Publish) # Table 1 creation
 library(writexl) # Excel conversion of data frames
 library(arrow) # Read parquet files
 library(riskRegression) # Risk modelling
-
+library(halfmoon) # Checking propensity
+library(geomtextpath) # Text in ggplot2
 
 #######################################################
 
@@ -128,13 +129,13 @@ library(riskRegression) # Risk modelling
 #   select(-Total_IScore)
 
 
-# 3. Initially restrict to max 20 measurements per person and per hospitalization to avoid over-representation
+# 3. Initially restrict to Max 20 measurements per person and per hospitalization to avoid over-representation
 # 4. Hospitals added
 # 5. Unique hospitalization number added, i.e CSN
 # 6. Department name added
 # 7. Imputation with median and mode for NAs (various other ways possible, no difference in results based on previous work)
 # 8. Blood tests, interventions, diagnoses, intensive care unit data added
-# 9. Early warning scores are summarised into max / mean per hospitalization and per patient, so every patient is repeated only based on the number of times they are hospitalized
+# 9. Early warning scores are summarised into Max / mean per hospitalization and per patient, so every patient is repeated only based on the number of times they are hospitalized
 
 
 # Open the initial dataset
@@ -153,11 +154,13 @@ data <- data |>
 data <- data |> 
   mutate_at(vars(ITA_Indicator,SKS_Category),as.factor)
 
+data <- as.data.frame(data)
+
 # What we should do now is create a model that gives the propensity of having received an intervention (thats for comparing afterwards with new models)
 
-model_weights = glm(Interventions ~ Age_Group + Sex + Hospital + 
-                      Blood_Pressure.Sys + Temperature + Saturation + Pulse +
-                      Oxygen_Supplement + Consciousness,data = data,family = "binomial")
+model_weights <- glm(Interventions ~ Age_Group + Sex + Hospital + 
+  Blood_Pressure.Sys + Temperature + Saturation + Pulse +
+  Oxygen_Supplement + Consciousness,data = data,family = "binomial")
 
 # Compute the probability of receiving intervention
 
@@ -168,6 +171,15 @@ intervention_probs <- predictRisk(model_weights,data)
 data <- data |>
   mutate(preds = intervention_probs,
          weights = if_else(Interventions == 1, 1/preds,1/(1-preds)))
+
+# Check the propensity score model
+
+plot_ipw <- data |> 
+tidy_smd(c(Mean_NEWS,Age_Group,Sex,Hospital, Blood_Pressure.Sys,Temperature,Saturation,Pulse, Oxygen_Supplement, Consciousness),
+          .group = Interventions,
+          .wts = weights)
+
+love_plot(plot_ipw)
 
 # Factorize interventions
 
@@ -211,7 +223,7 @@ data <- data |>
 # Defining Risk Groups based on EWS
 
 data <- data |> 
-  mutate(Risk_Groups_EWS = case_when(
+mutate(Risk_Groups_EWS = case_when(
     EWS_score >= 7 ~ "High",
     EWS_score >= 5 & EWS_score <= 6 ~ "Medium",
     (Respiration_Rate <= 8 | Respiration_Rate >=25) | (Saturation <= 91) | 
@@ -245,10 +257,10 @@ model <- logistic_reg(mode = "classification",engine = "glm")
 # Current model
 
 current_wf <- workflow() |> 
-  add_formula(Status30D ~ Max_NEWS) |>
+  add_formula(Status30D ~ Mean_NEWS) |>
   add_model(model)
 
-
+  
 # Set up parallel processing
 doParallel::registerDoParallel(cores = 6)
 
@@ -258,18 +270,18 @@ cntrl <- control_resamples(save_pred = T)
 # Internal-External validation of the current EWS (checking demographic parity also)
 
 current_fit <- fit_resamples(current_wf,resamples = data_folds,
-                             metrics = metric_set(
-                               roc_auc,
-                               brier_class,
-                               demographic_parity(Age_Group),
-                               demographic_parity(Sex),
-                               demographic_parity(Department_Name_Fac),
-                               demographic_parity(Hospital),
-                               demographic_parity(Risk_Groups_EWS),
-                               demographic_parity(Previous_Hosp_Fac),
-                               demographic_parity(SKS_Category),
-                               demographic_parity(Interventions),
-                               demographic_parity(ITA_Indicator)), 
+                              metrics = metric_set(
+                              roc_auc,
+                              brier_class,
+                              demographic_parity(Age_Group),
+                              demographic_parity(Sex),
+                              demographic_parity(Department_Name_Fac),
+                              demographic_parity(Hospital),
+                              demographic_parity(Risk_Groups_EWS),
+                              demographic_parity(Previous_Hosp_Fac),
+                              demographic_parity(SKS_Category),
+                              demographic_parity(Interventions),
+                              demographic_parity(ITA_Indicator)), 
                              ,control = cntrl)
 
 
@@ -281,10 +293,10 @@ current_fit |> collect_metrics()
 # Compute confidence interval of performance metrics
 
 current_fit_ci <- fit_resamples(current_wf,resamples = data_folds,
-                                metrics = metric_set(
-                                  roc_auc,
-                                  brier_class), 
-                                control = cntrl)
+                              metrics = metric_set(
+                              roc_auc,
+                              brier_class), 
+                              control = cntrl)
 
 doParallel::registerDoParallel(cores = 6)
 
@@ -484,7 +496,7 @@ pred_df |>
 
 # Specify thresholds 
 
-dca_thresholds <- seq(0.01, 0.60, by = 0.01)
+dca_thresholds <- seq(0.0, 0.2, by = 0.01)
 
 # Grab predictions from current_fit 
 
@@ -507,8 +519,10 @@ dca_first <- dcurves::dca(
   thresholds = dca_thresholds,
   label = list(
     cv_pred_current = "NEWS2"
-  )) |> plot(smooth = T)
+  )) |> plot(smooth = F)
 
+
+# Create plot
 dca_plot1 <- dca_first + 
   theme_grey(base_size = 12) + 
   theme(legend.position = "top") +
@@ -526,7 +540,7 @@ dca_plot1 <- dca_first +
 dca_youngest <- dcurves::dca(
   data = data |> filter(Age_Group == "18-65"),
   formula = mort30D ~ cv_pred_current,
-  thresholds = seq(0,0.2,0.01),
+  thresholds = seq(0,0.2,0.005),
   label = list(
     cv_pred_current = "NEWS2"
   )) |> plot(smooth = T)
@@ -672,10 +686,12 @@ dca_plot7 <- dca_int +
 
 # End of decision curve analysis
 
-# Evaluate mortality proportions per Max EWS (for demonstration purposes)
+# Evaluate mortality proportions per Mean EWS (for demonstration purposes)
 
 data |>
-  group_by(Max_NEWS) |>
-  summarise(Mortality = mean(mort30D == 1)) |>
-  ggplot(aes(x = Max_NEWS, y = Mortality)) + 
-  geom_smooth()
+    group_by(Mean_NEWS) |>
+    summarise(Mortality = mean(mort30D == 1)) |>
+    ggplot(aes(x = Mean_NEWS, y = Mortality)) + 
+    geom_smooth()
+
+
