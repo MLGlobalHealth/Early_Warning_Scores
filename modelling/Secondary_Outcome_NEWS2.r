@@ -260,7 +260,7 @@ model <- logistic_reg(mode = "classification",engine = "glm")
 # Current model
 
 current_wf <- workflow() |> 
-  add_formula(Status30D ~ Max_NEWS) |>
+  add_formula(Status30D ~ Mean_NEWS) |>
   add_model(model)
 
   
