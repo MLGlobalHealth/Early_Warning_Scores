@@ -15,6 +15,7 @@ library(probably) # Calibration
 library(rms) # Classic statistical modelling
 library(doParallel) # Parallel processing
 library(tidylog) # Observing pre-processing numbers
+library(Publish) # Table 1 creation
 library(writexl) # Excel conversion of data frames
 library(arrow) # Read parquet files
 library(MetricsWeighted) # Weighted metrics
@@ -63,19 +64,19 @@ xgb <- boost_tree() |>
 # Current model
 
 current_wf <- workflow() |> 
-  add_formula(Status30D ~ Max_NEWS) |>
+  add_formula(Status30D ~ Mean_NEWS) |>
   add_model(model)
 
 # NEWS2-Light
 
 light_wf <- workflow() |> 
-  add_formula(Status30D ~ Max_NEWS_Light) |>
+  add_formula(Status30D ~ Mean_NEWS_Light) |>
   add_model(model)
 
 # IEWS
 
 full_wf <- workflow() |> 
-  add_formula(Status30D ~ Max_IEWS) |>
+  add_formula(Status30D ~ Mean_IEWS) |>
   add_model(model)
 
 # XGBoost
@@ -241,7 +242,7 @@ weighted_xgb <- xgb_fit |>
 
 # Bind all of them together
 
-weighted_metrics <- bind_rows(weighted_current,weighted_light, weighted_full, weighted_xgb) |>
+weighted_metrics <- bind_rows(weighted_current, weighted_light, weighted_full, weighted_xgb) |>
     mutate(Model = c("NEWS2", "NEWS2-Light", "IEWS", "TREE-EWS")) |>
     relocate(Model,.before = Mean_AUC)
 
@@ -289,10 +290,10 @@ calibration_summary_current <- resample_calibration_current |>
 
 # Plot the calibration curve with confidence bands
 
-current_overall_weighted <- ggplot(calibration_summary_current, aes(x = mean_pred_prob, y = weighted_frac_pos_mean, ymin = lower_ci, ymax = upper_ci)) +
+current_overall_weighted <- ggplot(calibration_summary_current, aes(x = mean_pred_prob, y = weighted_frac_pos_mean)) +
   see::geom_point2(stroke = 4) +
   geom_line() + 
-  geom_errorbar() + 
+  geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci)) + 
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey") +
   labs(x = "Mean predicted probability", y = "Weighted fraction of mortality cases") +
   theme_gray(base_size = 12)
@@ -1149,7 +1150,7 @@ weighted_dca_multi <- function(data, pred_cols, outcome_col, weight_col, thresho
     bind_rows(
       tibble(
         threshold = thresholds,
-        NB = pmax(0, weighted_prevalence - thresholds * (1 - weighted_prevalence)),
+        NB = weighted_prevalence - thresholds * (1 - weighted_prevalence),
         model = "All"
       ),
       tibble(
@@ -1201,8 +1202,21 @@ weighted_dca_results <- weighted_dca_multi(
 )
 
 # Plot the results with multiple models
-ggplot(weighted_dca_results, aes(x = threshold, y = NB, color = model)) +
-  geom_smooth(se = F) +
+
+all_model_filtered <- weighted_dca_results %>%
+  filter(model == "All") %>%
+  mutate(keep = cumsum(NB < 0) <= 1) %>%
+  filter(keep) %>%
+  select(-keep)
+
+# Combine with other models
+filtered_results <- weighted_dca_results %>%
+  filter(model != "All") %>%
+  bind_rows(all_model_filtered)
+
+# Plot using ggplot2
+ggplot(filtered_results, aes(x = threshold, y = NB, color = model)) +
+  geom_smooth(se = FALSE) +
   labs(x = "Threshold Probability", y = "Net Benefit") + 
   theme_gray(base_size = 12) + 
   scale_y_continuous(labels = scales::label_number(scale = 1000)) +
@@ -1224,8 +1238,20 @@ weighted_dca_results_youngest <- weighted_dca_multi(
   labels = model_labels
 )
 
+all_model_filtered_youngest <- weighted_dca_results_youngest %>%
+  filter(model == "All") %>%
+  mutate(keep = cumsum(NB < 0) <= 2) %>%
+  filter(keep) %>%
+  select(-keep)
+
+# Combine with other models
+filtered_results_youngest <- weighted_dca_results_youngest %>%
+  filter(model != "All") %>%
+  bind_rows(all_model_filtered_youngest)
+
+
 # Plot the results with multiple models
-ggplot(weighted_dca_results_youngest, aes(x = threshold, y = NB, color = model)) +
+ggplot(filtered_results_youngest, aes(x = threshold, y = NB, color = model)) +
   geom_smooth(se = F) +
   labs(x = "Threshold Probability", y = "Net Benefit") + 
   theme_gray(base_size = 12) + 
@@ -1243,8 +1269,20 @@ weighted_dca_results_middle <- weighted_dca_multi(
   labels = model_labels
 )
 
+all_model_filtered_middle <- weighted_dca_results_middle %>%
+  filter(model == "All") %>%
+  mutate(keep = cumsum(NB < 0) <= 1) %>%
+  filter(keep) %>%
+  select(-keep)
+
+# Combine with other models
+filtered_results_middle <- weighted_dca_results_middle %>%
+  filter(model != "All") %>%
+  bind_rows(all_model_filtered_middle)
+
+
 # Plot the results with multiple models
-ggplot(weighted_dca_results_middle, aes(x = threshold, y = NB, color = model)) +
+ggplot(filtered_results_middle, aes(x = threshold, y = NB, color = model)) +
   geom_smooth(se = F) +
   labs(x = "Threshold Probability", y = "Net Benefit") + 
   theme_gray(base_size = 12) + 
@@ -1262,13 +1300,26 @@ weighted_dca_results_oldest <- weighted_dca_multi(
   labels = model_labels
 )
 
+all_model_filtered_oldest <- weighted_dca_results_oldest %>%
+  filter(model == "All") %>%
+  mutate(keep = cumsum(NB < 0) <= 1) %>%
+  filter(keep) %>%
+  select(-keep)
+
+# Combine with other models
+filtered_results_oldest <- weighted_dca_results_oldest %>%
+  filter(model != "All") %>%
+  bind_rows(all_model_filtered_oldest)
+
+
 # Plot the results with multiple models
-ggplot(weighted_dca_results_oldest, aes(x = threshold, y = NB, color = model)) +
+ggplot(filtered_results_oldest, aes(x = threshold, y = NB, color = model)) +
   geom_smooth(se = F) +
   labs(x = "Threshold Probability", y = "Net Benefit") + 
   theme_gray(base_size = 12) + 
   scale_y_continuous(labels = scales::label_number(scale = 1000)) +
   theme(legend.position = "top")
+
 
 
 #######################
@@ -1286,13 +1337,26 @@ weighted_dca_results_males <- weighted_dca_multi(
   labels = model_labels
 )
 
+all_model_filtered_males <- weighted_dca_results_males %>%
+  filter(model == "All") %>%
+  mutate(keep = cumsum(NB < 0) <= 1) %>%
+  filter(keep) %>%
+  select(-keep)
+
+# Combine with other models
+filtered_results_males <- weighted_dca_results_males %>%
+  filter(model != "All") %>%
+  bind_rows(all_model_filtered_males)
+
+
 # Plot the results with multiple models
-ggplot(weighted_dca_results_males, aes(x = threshold, y = NB, color = model)) +
+ggplot(filtered_results_males, aes(x = threshold, y = NB, color = model)) +
   geom_smooth(se = F) +
   labs(x = "Threshold Probability", y = "Net Benefit") + 
   theme_gray(base_size = 12) + 
   scale_y_continuous(labels = scales::label_number(scale = 1000)) +
   theme(legend.position = "top")
+
 
 # Females
 
@@ -1305,13 +1369,26 @@ weighted_dca_results_females <- weighted_dca_multi(
   labels = model_labels
 )
 
+all_model_filtered_females <- weighted_dca_results_females %>%
+  filter(model == "All") %>%
+  mutate(keep = cumsum(NB < 0) <= 1) %>%
+  filter(keep) %>%
+  select(-keep)
+
+# Combine with other models
+filtered_results_females <- weighted_dca_results_females %>%
+  filter(model != "All") %>%
+  bind_rows(all_model_filtered_females)
+
+
 # Plot the results with multiple models
-ggplot(weighted_dca_results_females, aes(x = threshold, y = NB, color = model)) +
+ggplot(filtered_results_females, aes(x = threshold, y = NB, color = model)) +
   geom_smooth(se = F) +
   labs(x = "Threshold Probability", y = "Net Benefit") + 
   theme_gray(base_size = 12) + 
   scale_y_continuous(labels = scales::label_number(scale = 1000)) +
   theme(legend.position = "top")
+
 
 
 #################################
