@@ -134,7 +134,7 @@ library(riskRegression) # Risk modelling
 # 6. Department name added
 # 7. Imputation with median and mode for NAs (various other ways possible, no difference in results based on previous work)
 # 8. Blood tests, interventions, diagnoses, intensive care unit data added
-# 9. Early warning scores are summarised into max / mean per hospitalization and per patient, so every patient is repeated only based on the number of times they are hospitalized
+# 9. Early warning scores are summarised into Max / mean per hospitalization and per patient, so every patient is repeated only based on the number of times they are hospitalized
 
 
 # Open the initial dataset
@@ -269,19 +269,19 @@ xgb <- boost_tree() |>
 # Current model
 
 current_wf <- workflow() |> 
-  add_formula(Status30D ~ Max_NEWS) |>
+  add_formula(Status30D ~ Mean_NEWS) |>
   add_model(model)
 
 # NEWS2-Light
 
 light_wf <- workflow() |> 
-  add_formula(Status30D ~ Max_NEWS_Light) |>
+  add_formula(Status30D ~ Mean_NEWS_Light) |>
   add_model(model)
 
 # IEWS
 
 full_wf <- workflow() |> 
-  add_formula(Status30D ~ Max_IEWS) |>
+  add_formula(Status30D ~ Mean_IEWS) |>
   add_model(model)
 
 # XGBoost
