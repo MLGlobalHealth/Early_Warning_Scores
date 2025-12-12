@@ -2,6 +2,8 @@
 # STEP 0: SETUP & DATA RECOVERY
 # =====================================
 
+# Note: NEWS-Light was renamed to "Simplified NEWS" in the manuscript
+
 library(tidyverse)
 library(tidymodels)
 library(arrow)

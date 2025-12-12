@@ -2,6 +2,8 @@
 # LANCET STYLE GGPLOT SYSTEM
 # ================================
 
+# Note: NEWS-Light was renamed to "Simplified NEWS" in the manuscript
+
 # Other helper functions
 
 # Helper function: Largest Remainder Method to ensure sum is exactly 100%

@@ -2,6 +2,8 @@
 # SUPPLEMENTAL DATA PROCESSING
 # =============================
 
+# Note: NEWS-Light was renamed to "Simplified NEWS" in the manuscript
+
 # Load necessary libraries
 
 library(arrow)
